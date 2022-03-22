@@ -9,6 +9,7 @@ StardustPermutation(
   scratch.folder,
   file,
   tissuePosition,
+  method = c("sw", "indsw"),
   spaceWeight = 1,
   res = 0.8,
   nPerm,
@@ -31,9 +32,12 @@ StardustPermutation(
 
 \item{tissuePosition, }{file with tissue position name with extension}
 
+\item{method, }{method to be used to calculate the space weight. Two options: "sw" or "indsw", 
+depending on whether the user specifies a weight or not}
+
 \item{spaceWeight, }{double in [0,1]. Weight for the linear transormation of spot distance.
-1 means spot distance weight as much as profile distance, 0 means spot distance doesn't contribute at all in the overall 
-distance measure.}
+1 means spot distance weight as much as profile distance, 0 means spot distance doesn't 
+contribute at all in the overall distance measure}
 
 \item{res, }{double resolution for louvain algorithm}
 
@@ -56,14 +60,16 @@ distance measure.}
 \item{format, }{output file format csv or txt}
 }
 \value{
-To write
+a specific number of permutation to evaluate clustering
 }
 \description{
-This function executes a ubuntu docker that produces a specific number of permutation to evaluate clustering 
- using an extended conf. of seurat (updated to 2020) that take into consideration physical position of spots.
+This function executes a ubuntu docker that produces a specific number of permutations to evaluate clustering 
+ using an extended version of Seurat (updated to 2022) that takes into consideration physical position of spots.
 }
 \author{
 Luca Alessandri, alessandri [dot] luca1991 [at] gmail [dot] com, University of Torino
 
-Giovanni Motterle, giovanni [dot] motterle [at] studenti [dot] univr [dot] it, University of Verona
+Eva Viesi, eva [dot] viesi [at] univr [dot] it, University of Verona
+
+Simone Avesani, simone [dot] avesani [at] univr [dot] it, University of Verona
 }

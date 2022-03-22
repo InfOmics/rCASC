@@ -71,7 +71,6 @@ format=strsplit(basename(basename(file)),"\\.")[[1]][positions]
   }
 
 
-
   #check  if scratch folder exist
   if (!file.exists(scratch.folder)){
     cat(paste("\nIt seems that the ",scratch.folder, " folder does not exist\n"))

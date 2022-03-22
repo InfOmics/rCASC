@@ -1,3 +1,0 @@
-docker.io/repbioinfo/cellranger.2020.05
-docker.io/repbioinfo/ribomitoumi
-

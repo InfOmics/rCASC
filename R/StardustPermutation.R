@@ -1,14 +1,15 @@
-
 #' @title Stardust Permutation
-#' @description This function executes a ubuntu docker that produces a specific number of permutation to evaluate clustering 
-#'  using an extended conf. of seurat (updated to 2020) that take into consideration physical position of spots.
+#' @description This function executes a ubuntu docker that produces a specific number of permutations to evaluate clustering 
+#'  using an extended version of Seurat (updated to 2022) that takes into consideration physical position of spots.
 #' @param group, a character string. Two options: sudo or docker, depending to which group the user belongs
 #' @param scratch.folder, a character string indicating the path of the scratch folder
 #' @param file, a character string indicating the path of the file, with file name and extension included
 #' @param tissuePosition, file with tissue position name with extension
+#' @param method, method to be used to calculate the space weight. Two options: "sw" or "indsw", 
+#' depending on whether the user specifies a weight or not 
 #' @param spaceWeight, double in [0,1]. Weight for the linear transormation of spot distance.
-#'  1 means spot distance weight as much as profile distance, 0 means spot distance doesn't contribute at all in the overall 
-#'  distance measure.
+#'  1 means spot distance weight as much as profile distance, 0 means spot distance doesn't 
+#'  contribute at all in the overall distance measure
 #' @param res, double resolution for louvain algorithm
 #' @param nPerm, number of permutations to perform the pValue to evaluate clustering
 #' @param permAtTime, number of permutations that can be computes in parallel
@@ -19,23 +20,26 @@
 #' @param seed, important value to reproduce the same results with same input
 #' @param sparse, boolean for sparse matrix
 #' @param format, output file format csv or txt
-
-#' @author Luca Alessandri, alessandri [dot] luca1991 [at] gmail [dot] com, University of Torino
-#' @author Giovanni Motterle, giovanni [dot] motterle [at] studenti [dot] univr [dot] it, University of Verona
 #'
-#' @return To write
+#' @author Luca Alessandri, alessandri [dot] luca1991 [at] gmail [dot] com, University of Torino
+#' @author Eva Viesi, eva [dot] viesi [at] univr [dot] it, University of Verona
+#' @author Simone Avesani, simone [dot] avesani [at] univr [dot] it, University of Verona
+#'
+#' @return a specific number of permutation to evaluate clustering
 #' @export
 
 StardustPermutation <- function(group=c("sudo","docker"), scratch.folder, 
-  file, tissuePosition, spaceWeight=1,res=0.8, nPerm, permAtTime, percent, separator, 
-  logTen=0, pcaDimensions=5, seed=1111, sparse=FALSE, format="NULL"){
-
+                                file, tissuePosition, method=c("sw","indsw"), spaceWeight=1,
+                                res=0.8, nPerm, permAtTime, percent, separator, 
+                                logTen=0, pcaDimensions=5, seed=1111, 
+                                sparse=FALSE, format="NULL"){
+  
   if(!sparse){
-  data.folder=dirname(file)
-  matrixNameC=strsplit(basename(file),"\\.")[[1]]
-  positions=length(matrixNameC)
-  matrixName=paste(matrixNameC[seq(1,positions-1)],collapse="")
-  format=strsplit(basename(basename(file)),"\\.")[[1]][positions]
+    data.folder=dirname(file)
+    matrixNameC=strsplit(basename(file),"\\.")[[1]]
+    positions=length(matrixNameC)
+    matrixName=paste(matrixNameC[seq(1,positions-1)],collapse="")
+    format=strsplit(basename(basename(file)),"\\.")[[1]][positions]
   }else{
     matrixName=strsplit(dirname(file),"/")[[1]][length(strsplit(dirname(file),"/")[[1]])]
     data.folder=paste(strsplit(dirname(file),"/")[[1]][-length(strsplit(dirname(file),"/")[[1]])],collapse="/")
@@ -43,7 +47,7 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
       stop("Format output cannot be NULL for sparse matrix")
     }
   }
-
+  
   #check valid value for spaceWeight
   tissuePositionFile = basename(tissuePosition)
   spaceWeight = as.double(spaceWeight)
@@ -51,6 +55,16 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
     stop("Param spaceWeight is not a double number.")
   if(spaceWeight > 1 | spaceWeight < 0)
     stop("spaceWeight is not in [0,1]")
+  
+  #check valid value for method
+  method = as.character(method)
+  if(is.na(method))
+    stop("Param method is not a character.")
+  if(method != "sw" && method != "indsw") {
+    stop("Param method is not valid.")
+  }
+  
+  #check valid value for resolution
   res = as.double(res)
   if(is.na(res) || res < 0 || res > 5){
     stop("Param res is not valid. Values are in [0,5].")
@@ -63,13 +77,13 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
     system("echo 2 > ExitStatusFile 2>&1")
     return(2)
   }
-
+  
   #storing the position of the home folder
   home <- getwd()
   setwd(data.folder)
   #initialize status
   system("echo 0 > ExitStatusFile 2>&1")
-
+  
   #testing if docker is running
   test <- dockerTest()
   if(!test){
@@ -78,9 +92,8 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
     setwd(home)
     return(10)
   }
-
-
-
+  
+  
   #check  if scratch folder exist
   if (!file.exists(scratch.folder)){
     cat(paste("\nIt seems that the ",scratch.folder, " folder does not exist\n"))
@@ -94,11 +107,11 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
   cat("\ncreating a folder in scratch folder\n")
   dir.create(file.path(scrat_tmp.folder))
   #preprocess matrix and copying files
-
+  
   if(separator=="\t"){
     separator="tab"
   }
-
+  
   dir.create(paste(scrat_tmp.folder,"/",matrixName,sep=""))
   dir.create(paste(data.folder,"/Results",sep=""))
   system(paste("cp ",tissuePosition," ",scrat_tmp.folder,"/",sep=""))
@@ -107,19 +120,19 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
   }else{
     system(paste("cp -r ",data.folder,"/",matrixName,"/ ",scrat_tmp.folder,"/",sep=""))
   }
-
+  
   profileDistance = 2
   spotDistance = 2
   #executing the docker job
   params <- paste("--cidfile ",data.folder,"/dockerID -v ",scrat_tmp.folder,
-    ":/scratch -v ", data.folder, 
-    ":/data -d docker.io/giovannics/spatial2020seuratpermutation Rscript /home/main.R ",
-    matrixName," ",tissuePositionFile," ",profileDistance," ",spotDistance," ", 
-  spaceWeight," ",res," ",nPerm," ",permAtTime," ",percent," ",format," ",separator,
-    " ",logTen," ",pcaDimensions," ",seed," ",sparse,sep="")
-
+                  ":/scratch -v ", data.folder, 
+                  ":/data -d docker.io/eviesi/permutationstardust22 Rscript /home/main.R ",
+                  matrixName," ",tissuePositionFile," ",profileDistance," ",spotDistance," ",method," ",
+                  spaceWeight," ",res," ",nPerm," ",permAtTime," ",percent," ",format," ",
+                  separator," ",logTen," ",pcaDimensions," ",seed," ",sparse,sep="")
+  
   resultRun <- runDocker(group=group, params=params)
-
+  
   #waiting for the end of the container work
   if(resultRun==0){
     #system(paste("cp ", scrat_tmp.folder, "/* ", data.folder, sep=""))
@@ -141,17 +154,17 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
     tmp.run[1] <- paste("run time mins ",ptm[1]/60, sep="")
     tmp.run[length(tmp.run)+1] <- paste("system run time mins ",ptm[2]/60, sep="")
     tmp.run[length(tmp.run)+1] <- paste("elapsed run time mins ",ptm[3]/60, sep="")
-
+    
     writeLines(tmp.run,"run.info")
   }
-
+  
   #saving log and removing docker container
   container.id <- readLines(paste(data.folder,"/dockerID", sep=""), warn = FALSE)
   system(paste("docker logs ", substr(container.id,1,12), " &> ",data.folder,"/", 
-    substr(container.id,1,12),".log", sep=""))
+               substr(container.id,1,12),".log", sep=""))
   system(paste("docker rm ", container.id, sep=""))
-
-
+  
+  
   #Copy result folder
   cat("Copying Result Folder")
   system(paste("cp -r ",scrat_tmp.folder,"/* ",data.folder,"/Results",sep=""))
@@ -162,6 +175,6 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder,
   system("rm -fR dockerID")
   system("rm  -fR tempFolderID")
   system(paste("cp ",paste(path.package(package="rCASC"),
-    "containers/containers.txt",sep="/")," ",data.folder, sep=""))
+                           "containers/containers.txt",sep="/")," ",data.folder, sep=""))
   setwd(home)
 } 
