@@ -9,6 +9,8 @@ StardustPermutation(
   scratch.folder,
   file,
   tissuePosition,
+  profileDistance,
+  spotDistance,
   method = c("sw", "indsw"),
   spaceWeight = 1,
   res = 0.8,
@@ -32,6 +34,10 @@ StardustPermutation(
 
 \item{tissuePosition, }{file with tissue position name with extension}
 
+\item{profileDistance, }{parameter of minkowski distance bw transcriptional profiles}
+
+\item{spotDistance, }{parameter of minkowski distance bw spot position}
+
 \item{method, }{method to be used to calculate the space weight. Two options: "sw" or "indsw", 
 depending on whether the user specifies a weight or not}
 
@@ -39,7 +45,7 @@ depending on whether the user specifies a weight or not}
 1 means spot distance weight as much as profile distance, 0 means spot distance doesn't 
 contribute at all in the overall distance measure}
 
-\item{res, }{double resolution for louvain algorithm}
+\item{res, }{double resolution for Louvain algorithm}
 
 \item{nPerm, }{number of permutations to perform the pValue to evaluate clustering}
 
@@ -60,7 +66,7 @@ contribute at all in the overall distance measure}
 \item{format, }{output file format csv or txt}
 }
 \value{
-a specific number of permutation to evaluate clustering
+A specific number of permutations to evaluate clustering.
 }
 \description{
 This function executes a ubuntu docker that produces a specific number of permutations to evaluate clustering 
