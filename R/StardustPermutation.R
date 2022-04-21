@@ -31,10 +31,10 @@
 #' @export
 
 StardustPermutation <- function(group=c("sudo","docker"), scratch.folder, file, 
-                                tissuePosition, profileDistance, spotDistance,
+                                tissuePosition, profileDistance=2, spotDistance=2,
                                 method=c("sw","indsw"), spaceWeight=1, res=0.8, 
                                 nPerm, permAtTime, percent, separator, logTen=0, 
-                                pcaDimensions=5, seed=1111, sparse=FALSE, 
+                                pcaDimensions=10, seed=1111, sparse=FALSE, 
                                 format="NULL"){
   
   if(!sparse){
@@ -129,7 +129,7 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder, file,
   #executing the docker job
   params <- paste("--cidfile ",data.folder,"/dockerID -v ",scrat_tmp.folder,
                   ":/scratch -v ", data.folder, 
-                  ":/data -d docker.io/eviesi/permutationstardust22:old Rscript /home/main.R ",
+                  ":/data -d docker.io/eviesi/permutationstardust22 Rscript /home/main.R ",
                   matrixName," ",tissuePositionFile," ",profileDistance," ",spotDistance," ",method," ",
                   spaceWeight," ",res," ",nPerm," ",permAtTime," ",percent," ",
                   separator," ",logTen," ",pcaDimensions," ",seed," ",sparse," ",
