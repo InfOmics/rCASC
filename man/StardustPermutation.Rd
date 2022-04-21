@@ -9,8 +9,6 @@ StardustPermutation(
   scratch.folder,
   file,
   tissuePosition,
-  profileDistance,
-  spotDistance,
   method = c("sw", "indsw"),
   spaceWeight = 1,
   res = 0.8,
@@ -19,7 +17,7 @@ StardustPermutation(
   percent,
   separator,
   logTen = 0,
-  pcaDimensions = 5,
+  pcaDimensions = 10,
   seed = 1111,
   sparse = FALSE,
   format = "NULL"
@@ -33,10 +31,6 @@ StardustPermutation(
 \item{file, }{a character string indicating the path of the file, with file name and extension included}
 
 \item{tissuePosition, }{file with tissue position name with extension}
-
-\item{profileDistance, }{parameter of minkowski distance bw transcriptional profiles}
-
-\item{spotDistance, }{parameter of minkowski distance bw spot position}
 
 \item{method, }{method to be used to calculate the space weight. Two options: "sw" or "indsw", 
 depending on whether the user specifies a weight or not}
@@ -57,7 +51,7 @@ contribute at all in the overall distance measure}
 
 \item{logTen, }{1 if the count matrix is already in log10, 0 otherwise}
 
-\item{pcaDimensions, }{0 for automatic selection of PC elbow.}
+\item{pcaDimensions, }{0 for automatic selection of PC elbow}
 
 \item{seed, }{important value to reproduce the same results with same input}
 

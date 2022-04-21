@@ -5,8 +5,6 @@
 #' @param scratch.folder, a character string indicating the path of the scratch folder
 #' @param file, a character string indicating the path of the file, with file name and extension included
 #' @param tissuePosition, file with tissue position name with extension
-#' @param profileDistance, parameter of minkowski distance bw transcriptional profiles
-#' @param spotDistance, parameter of minkowski distance bw spot position
 #' @param method, method to be used to calculate the space weight. Two options: "sw" or "indsw", 
 #' depending on whether the user specifies a weight or not 
 #' @param spaceWeight, double in [0,1]. Weight for the linear transormation of spot distance.
@@ -18,7 +16,7 @@
 #' @param percent, percentage of randomly selected cells removed in each permutation
 #' @param separator, separator used in count file, e.g. '\\t', ','
 #' @param logTen, 1 if the count matrix is already in log10, 0 otherwise
-#' @param pcaDimensions, 	0 for automatic selection of PC elbow.
+#' @param pcaDimensions, 0 for automatic selection of PC elbow
 #' @param seed, important value to reproduce the same results with same input
 #' @param sparse, boolean for sparse matrix
 #' @param format, output file format csv or txt
@@ -31,11 +29,10 @@
 #' @export
 
 StardustPermutation <- function(group=c("sudo","docker"), scratch.folder, file, 
-                                tissuePosition, profileDistance=2, spotDistance=2,
-                                method=c("sw","indsw"), spaceWeight=1, res=0.8, 
-                                nPerm, permAtTime, percent, separator, logTen=0, 
-                                pcaDimensions=10, seed=1111, sparse=FALSE, 
-                                format="NULL"){
+                                tissuePosition, method=c("sw","indsw"), 
+                                spaceWeight=1, res=0.8, nPerm, permAtTime, 
+                                percent, separator, logTen=0, pcaDimensions=10, 
+                                seed=1111, sparse=FALSE, format="NULL"){
   
   if(!sparse){
     data.folder=dirname(file)
@@ -51,8 +48,8 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder, file,
     }
   }
   
-  #check valid value for spaceWeight
   tissuePositionFile = basename(tissuePosition)
+  #check valid value for spaceWeight
   spaceWeight = as.double(spaceWeight)
   if(is.na(spaceWeight))
     stop("Param spaceWeight is not a double number.")
@@ -129,11 +126,10 @@ StardustPermutation <- function(group=c("sudo","docker"), scratch.folder, file,
   #executing the docker job
   params <- paste("--cidfile ",data.folder,"/dockerID -v ",scrat_tmp.folder,
                   ":/scratch -v ", data.folder, 
-                  ":/data -d docker.io/eviesi/permutationstardust22 Rscript /home/main.R ",
-                  matrixName," ",tissuePositionFile," ",profileDistance," ",spotDistance," ",method," ",
-                  spaceWeight," ",res," ",nPerm," ",permAtTime," ",percent," ",
-                  separator," ",logTen," ",pcaDimensions," ",seed," ",sparse," ",
-                  format, sep="")
+                  ":/data -d docker.io/eviesi/permutationstardust22:old Rscript /home/main.R ",
+                  matrixName," ",tissuePositionFile," ",profileDistance," ",spotDistance," ",
+                  method," ",spaceWeight," ",res," ",nPerm," ",permAtTime," ",percent," ",
+                  format," ",separator," ",logTen," ",pcaDimensions," ",seed," ",sparse, sep="")
   
   resultRun <- runDocker(group=group, params=params)
   
